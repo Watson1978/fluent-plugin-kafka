@@ -56,6 +56,7 @@ class Fluent::Plugin::RdKafkaGroupInput < Fluent::Plugin::Input
 
   include Fluent::KafkaPluginUtil::SSLSettings
   include Fluent::KafkaPluginUtil::SaslSettings
+  include Fluent::KafkaPluginUtil::RdkafkaSettings
 
   class ForShutdown < StandardError
   end
@@ -99,6 +100,8 @@ class Fluent::Plugin::RdKafkaGroupInput < Fluent::Plugin::Input
     compat_parameters_convert(conf, :parser)
 
     super
+
+    mask_rdkafka_secrets(conf, 'kafka_configs', @kafka_configs)
 
     log.warn "The in_rdkafka_group consumer was not yet tested under heavy production load. Use it at your own risk!"
 

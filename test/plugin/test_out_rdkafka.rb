@@ -92,6 +92,15 @@ class RdkafkaOutputTest < Test::Unit::TestCase
     assert_nil config[:"enable.ssl.certificate.verification"]
   end
 
+  def test_rdkafka_options_secrets_are_masked_in_config_dump
+    d = create_driver(base_config("rdkafka_options" => '{"sasl.username": "testuser", "sasl.password": "testpass"}'))
+    dump = d.instance.config.to_masked_element.to_s
+
+    assert_not_include dump, "testpass"
+    assert_include dump, "testuser"
+    assert_equal "testpass", d.instance.rdkafka_options["sasl.password"]
+  end
+
   def test_configure_sasl_gssapi_over_ssl
     d = create_driver(base_config("principal" => "testuser@EXAMPLE.COM",
                                   "ssl_client_cert" => "/path/to/cert.pem",

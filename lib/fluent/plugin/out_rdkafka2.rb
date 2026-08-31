@@ -113,6 +113,7 @@ DESC
 
     include Fluent::KafkaPluginUtil::SSLSettings
     include Fluent::KafkaPluginUtil::SaslSettings
+    include Fluent::KafkaPluginUtil::RdkafkaSettings
 
     SCRAM_MECHANISMS = {
       "sha256" => "SCRAM-SHA-256",
@@ -187,6 +188,7 @@ DESC
 
     def configure(conf)
       super
+      mask_rdkafka_secrets(conf, 'rdkafka_options', @rdkafka_options)
       log.instance_eval {
         def add(level, message = nil)
           if message.nil?

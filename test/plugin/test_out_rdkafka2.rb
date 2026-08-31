@@ -116,6 +116,27 @@ class Rdkafka2OutputTest < Test::Unit::TestCase
     assert_equal 'testpass', config[:"sasl.password"]
   end
 
+  def test_rdkafka_options_secrets_are_masked_in_config_dump
+    conf = base_config + config_element('ROOT', '', {
+                                          "rdkafka_options" => '{"security.protocol": "SASL_SSL", "sasl.username": "testuser", "sasl.password": "testpass", "ssl.key.password": "keypass"}'}, [])
+    d = create_driver(conf)
+    dump = d.instance.config.to_masked_element.to_s
+
+    assert_not_include dump, "testpass"
+    assert_not_include dump, "keypass"
+    assert_include dump, "SASL_SSL"
+    assert_include dump, "testuser"
+    assert_equal "testpass", d.instance.rdkafka_options["sasl.password"]
+  end
+
+  def test_rdkafka_options_without_secrets_are_left_as_is
+    conf = base_config + config_element('ROOT', '', {
+                                          "rdkafka_options" => '{"security.protocol": "SASL_SSL"}'}, [])
+    d = create_driver(conf)
+
+    assert_include d.instance.config.to_masked_element.to_s, '{"security.protocol": "SASL_SSL"}'
+  end
+
   def test_configure_ssl_ca_certs_from_system
     conf = base_config + config_element('ROOT', '', {"ssl_ca_certs_from_system" => "true"}, [])
     d = create_driver(conf)

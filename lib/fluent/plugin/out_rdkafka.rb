@@ -81,6 +81,7 @@ DESC
 
   include Fluent::KafkaPluginUtil::SSLSettings
   include Fluent::KafkaPluginUtil::SaslSettings
+  include Fluent::KafkaPluginUtil::RdkafkaSettings
 
   def initialize
     super
@@ -92,6 +93,7 @@ DESC
 
   def configure(conf)
     super
+    mask_rdkafka_secrets(conf, 'rdkafka_options', @rdkafka_options)
     log.instance_eval {
       def add(level, message = nil)
         if message.nil?

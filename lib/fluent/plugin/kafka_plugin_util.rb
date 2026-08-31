@@ -1,5 +1,21 @@
+require 'json'
+
 module Fluent
   module KafkaPluginUtil
+    module RdkafkaSettings
+      SECRET_KEY_PATTERN = /password|secret/i
+
+      def mask_rdkafka_secrets(conf, param_name, options)
+        return unless conf[param_name]
+
+        secret_keys = options.keys.select { |key| SECRET_KEY_PATTERN.match?(key.to_s) }
+        return if secret_keys.empty?
+
+        masked = options.merge(secret_keys.map { |key| [key, 'xxxxxx'] }.to_h)
+        conf[param_name] = JSON.generate(masked)
+      end
+    end
+
     module AwsIamSettings
       def self.included(klass)
         klass.instance_eval do

@@ -39,6 +39,22 @@ class RdkafkaGroupInputTest < Test::Unit::TestCase
     assert_equal 'localhost:9092', d.instance.kafka_configs['bootstrap.servers']
   end
 
+  def test_kafka_configs_secrets_are_masked_in_config_dump
+    conf = %[
+      topics #{TOPIC_NAME}
+      kafka_configs {"bootstrap.servers": "localhost:9092", "sasl.username": "testuser", "sasl.password": "testpass"}
+      <parse>
+        @type none
+      </parse>
+    ]
+    d = create_driver(conf)
+    dump = d.instance.config.to_masked_element.to_s
+
+    assert_not_include dump, "testpass"
+    assert_include dump, "testuser"
+    assert_equal "testpass", d.instance.kafka_configs["sasl.password"]
+  end
+
   def test_multi_worker_support
     d = create_driver
     assert_true d.instance.multi_workers_ready?
